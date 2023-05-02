@@ -1,37 +1,53 @@
 import { Container } from "./styles";
-import input from "../../assets/input.svg";
-import output from "../../assets/output.svg";
-import money from "../../assets/money.svg";
+import income from '../../assets/income.svg';
+import outcome from '../../assets/outcome.svg';
+import total from '../../assets/total.svg';
+import { useTransactions } from "../../hooks/UseTransactions";
 import { useContext } from "react";
-import { TransactionsContext } from "../../TransactionsContext";
-
+import { currencyBRL } from "../../utils/format";
 
 export function Summary() {
-  const { transactions } = useContext(TransactionsContext);
-  console.log(transactions);
-  return (
-    <Container>
-      <div>
-        <header>
-          <p>Entradas</p>
-          <img src={input} alt="Entradas" />
-        </header>
-        <strong>R$ 1000,00</strong>
-      </div>
-      <div>
-        <header>
-          <p>Saídas</p>
-          <img src={output} alt="Saídas" />
-        </header>
-        <strong>-R$ 500,00</strong>
-      </div>
-      <div className="highlight-background">
-        <header>
-          <p>Total</p>
-          <img src={money} alt="Total" />
-        </header>
-        <strong>R$ 500,00</strong>
-      </div>
-    </Container>
-  );
+    const { transactions } = useTransactions();
+
+    const summary = transactions.reduce((acc, transaction) => {
+        if (transaction.type === 'deposit') {
+            acc.deposits +=  transaction.amount;
+            acc.total += transaction.amount;
+        } else {
+            acc.withdraws += transaction.amount;
+            acc.total -= transaction.amount;
+        }
+
+        return acc;
+    }, {
+        deposits: 0,
+        withdraws: 0,
+        total: 0,
+    });
+
+    return (
+        <Container>
+            <div>
+                <header>
+                    <p>Entradas</p>
+                    <img src={income} alt="Entradas" />
+                </header>
+                <strong>{currencyBRL(summary.deposits)}</strong>
+            </div>
+            <div>
+                <header>
+                    <p>Saídas</p>
+                    <img src={outcome} alt="Saídas" />
+                </header>
+                <strong>-{currencyBRL(summary.withdraws)}</strong>
+            </div>
+            <div className="highlight-background">
+                <header>
+                    <p>Total</p>
+                    <img src={total} alt="Total" />
+                </header>
+                <strong>{currencyBRL(summary.total)}</strong>
+            </div>
+        </Container>
+    );
 }
